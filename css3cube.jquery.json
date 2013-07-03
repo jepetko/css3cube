@@ -1,0 +1,26 @@
+{
+  "name": "css3cube",
+  "title": "Css3cube",
+  "description": "Cube for awesome CSS3 animations.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/jepetko/css3cube",
+  "author": {
+    "name": "katarina",
+    "email": "golbang.k@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jepetko/css3cube.git"
+  },
+  "bugs": "https://github.com/jepetko/css3cube/issues",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/jepetko/css3cube/blob/master/LICENSE-MIT"
+    }
+  ],
+  "dependencies": {
+    "jquery": "*"
+  },
+  "keywords": []
+}
