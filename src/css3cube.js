@@ -46,6 +46,7 @@ CssUtils.getPrefix = function(str) {
     return '';
 };
 CssUtils.fromCamelToCss = function(str) {
+    if( str.indexOf('-') !== -1 ) return str;
     return str.replace(/([A-Z])/g, function(str,m1){ return '-' + m1.toLowerCase(); });
 };
 
@@ -61,8 +62,7 @@ CssUtils.fromCamelToCss = function(str) {
                 this.options = {};
             if(arguments.length === 0)
                 return this.options;
-            //$.extend(this.options, { actions : ['animatex', 'animatey', 'animatez', 'shake'] }, options);
-            $.extend(this.options, { actions : ['open'] }, options);
+            $.extend(this.options, { actions : ['animatex', 'animatey', 'animatez', 'shake', 'open'] }, options);
             return this.options;
         };
 
@@ -82,29 +82,41 @@ CssUtils.fromCamelToCss = function(str) {
                 });
                 that.removeClass(classes.join(' '));
             },
-            _add : function(that, name, type, value) {
+            _add : function(that, name, cssProps) {
                 //to avoid collisions remove all the rules added previously
                 $.css3cube.actionBehavior._removeAll(that);
+
                 //add rule
                 var animClass = $.css3cube.buildClass(name,true) + ' {'
-                    + CssUtils.fromCamelToCss( Modernizr.prefixed(type) )
-                    + ': ' + value + '; }';
-                console.log( animClass );
+                var cssItems = '';
+                for( var prop in cssProps ) {
+                    var cssNameVendorSpec = CssUtils.fromCamelToCss( Modernizr.prefixed(prop) );
+                    cssItems +=  cssNameVendorSpec + ':' + cssProps[prop] + ";";
+                }
+                animClass += cssItems;
+                animClass += '}';
+
                 CssUtils.addRule( animClass );
                 //add the brand new rule to the cube
                 that.addClass($.css3cube.buildClass(name));
             },
+            init : function(that) {
+                $.each( $.css3cube.cssPartDefTransformations, function(key, val) {
+                    var part = $('<div class="' + $.css3cube.buildClass('el') + '"></div>').appendTo(that);
+                    $.css3cube.actionBehavior._add( part, key, val( $.css3cube() ) );
+                });
+            },
             animatex : function(that) {
                 that.addClass( $.css3cube.buildClass('container-anim') );
-                $.css3cube.actionBehavior._add(that, 'animatex', 'transform', 'rotateX(180deg)');
+                $.css3cube.actionBehavior._add(that, 'animatex', { transform : 'rotateX(180deg)' } );
             },
             animatey : function(that) {
                 that.addClass( $.css3cube.buildClass('container-anim') );
-                $.css3cube.actionBehavior._add(that, 'animatey', 'transform', 'rotateY(180deg)');
+                $.css3cube.actionBehavior._add(that, 'animatey', { transform : 'rotateY(180deg)' } );
             },
             animatez : function(that) {
                 that.addClass( $.css3cube.buildClass('container-anim') );
-                $.css3cube.actionBehavior._add(that, 'animatez', 'transform', 'rotateZ(90deg)');
+                $.css3cube.actionBehavior._add(that, 'animatez', { transform : 'rotateZ(90deg)' } );
             },
             shake : function(that) {
                 that.removeClass( $.css3cube.buildClass('container-anim') );
@@ -139,8 +151,8 @@ CssUtils.fromCamelToCss = function(str) {
                     + '}';
 
                 CssUtils.addRule(frameRule);
-                $.css3cube.actionBehavior._add( that, 'shake', Modernizr.prefixed('animation'),
-                                                'animshake 5s');// + $.css3cube.animDuration );
+                $.css3cube.actionBehavior._add( that, 'shake',
+                                                { animation : 'animshake ' + $.css3cube.animDuration + 'ms'} );
             },
             open : function(that) {
                 that.addClass( $.css3cube.buildClass('container-anim') );
@@ -148,46 +160,48 @@ CssUtils.fromCamelToCss = function(str) {
 
                     var ch = that.children( $.css3cube.buildClass(key,true) ).first();
 
-                    ch.addClass( $.css3cube.buildClass('container-anim') );
-                    ch.removeClass( $.css3cube.buildClass(key) );
-
-                    var res = /\-{1}[a-zA-Z]+$/.exec(key);
                     var openVal = $.css3cube.cssPartsOpenTransformations[key]($.css3cube());
-                    $.css3cube.actionBehavior._add( ch, $.css3cube.buildClass(res + '-open'), 'transform', openVal);
+                    if( !openVal ) return;
+                    $.css3cube.actionBehavior._add( ch, $.css3cube.buildClass(key + '-open'), openVal );
+                    ch.removeClass( $.css3cube.buildClass(key) );
+                    ch.addClass( $.css3cube.buildClass('container-anim') );
                 });
             }
         };
 
         $.css3cube.cssPartDefTransformations = {
             front : function(opts) {
-                return 'translateZ(' + opts.sizeHalf + 'px)';
+                return { transform : 'translateZ(' + opts.sizeHalf + 'px)' };
             },
             back : function(opts) {
-                return 'rotateX( -180deg ) translateZ( ' + opts.sizeHalf + 'px )';
+                return { transform : 'rotateX( -180deg ) translateZ( ' + opts.sizeHalf + 'px )' };
             },
             left : function(opts) {
-                return 'rotateY(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )';
+                return { transform : 'rotateY(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
             },
             right : function(opts) {
-                return 'rotateY(   90deg ) translateZ( ' + opts.sizeHalf + 'px )';
+                return { transform : 'rotateY(   90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
             },
             top: function(opts) {
-                return 'rotateX(   90deg ) translateZ( ' + opts.sizeHalf + 'px )';
+                return { transform : 'rotateX(   90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
             },
             bottom: function(opts) {
-                return 'rotateX(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )';
+                return { transform : 'rotateX(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
             }
         }
 
+        /* add open values */
         $.css3cube.cssPartsOpenTransformations = {
             front : function(opts) {
             },
             back : function(opts) {
+                return { transform : 'rotateX( -90deg ) translateY( 0px, 300px, 300px )' };
             },
             left : function(opts) {
-                return { transform : 'rotateY(  0deg ) translateZ( 0px )' };
+                return { transform : 'rotateX( 90deg ) translate3d( -405px, 0px, -200px )' };
             },
             right : function(opts) {
+                return { transform : 'rotateX( -90deg ) translate3d( 405px, 0px, 200px )' };
             },
             top: function(opts) {
             },
@@ -226,7 +240,7 @@ CssUtils.fromCamelToCss = function(str) {
             CssUtils.addRule( animClass );
             return className;
         }
-
+/*
         $.css3cube.addParts = function(that) {
             var width = parseInt( CssUtils.getRule( $.css3cube.buildClass('el',true), 'width') );
             $.css3cube( { size : width, sizeHalf : Math.round(width/2) });
@@ -240,16 +254,18 @@ CssUtils.fromCamelToCss = function(str) {
                 CssUtils.addRule(cssStr);
                 that.append('<div class="' + $.css3cube.buildClass('el') + ' ' + cssName + '"></div>');
             });
-        }
+        }*/
 
         var settings = $.css3cube(options);
+        var width = parseInt( CssUtils.getRule( $.css3cube.buildClass('el',true), 'width') );
+        $.css3cube( { size : width, sizeHalf : Math.round(width/2) });
 
         //adding container and the parts
         var container = $.css3cube.addContainer(this).addClass( $.css3cube.getDefaultAnimationBehaviorClass() );
-        $.css3cube.addParts(container);
+        $.css3cube.actionBehavior.init(container);
 
         //execute some animations (consider the settings)
-        container.delay(800);
+        container.delay(1000);
 
         var delay = 0;
         $.map(settings['actions'],
@@ -262,7 +278,8 @@ CssUtils.fromCamelToCss = function(str) {
                 }, this), delay);
                 delay += $.css3cube.animDuration;
             }, container )
-        )
+        );
+
         return this;
     };
 }( jQuery ));
