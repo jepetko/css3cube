@@ -62,7 +62,8 @@ CssUtils.fromCamelToCss = function(str) {
                 this.options = {};
             if(arguments.length === 0)
                 return this.options;
-            $.extend(this.options, { actions : ['animatex', 'animatey', 'animatez', 'shake', 'open'] }, options);
+            //$.extend(this.options, { actions : ['animatex', 'animatey', 'animatez', 'shake', 'open'] }, options);
+            $.extend(this.options, { actions : ['open'] }, options);
             return this.options;
         };
 
@@ -193,15 +194,17 @@ CssUtils.fromCamelToCss = function(str) {
         /* add open values */
         $.css3cube.cssPartsOpenTransformations = {
             front : function(opts) {
+                return { transform : 'rotateX(270deg)  translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
             },
             back : function(opts) {
-                return { transform : 'rotateX( -90deg ) translateY( 0px, 300px, 300px )' };
+                return { transform : 'rotateX(-90deg)  translateY(' + opts.size * 1.5 + 'px)', transformOrigin : 'bottom' };
             },
             left : function(opts) {
-                return { transform : 'rotateX( 90deg ) translate3d( -405px, 0px, -200px )' };
+                 return { transform : 'rotateY(-90deg)  rotateX( -90deg ) translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
             },
             right : function(opts) {
-                return { transform : 'rotateX( -90deg ) translate3d( 405px, 0px, 200px )' };
+                return { transform : 'rotateY(90deg)  rotateX( -90deg ) translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
+
             },
             top: function(opts) {
             },
@@ -227,8 +230,12 @@ CssUtils.fromCamelToCss = function(str) {
                 width: 100%; \
                 height: 100%; \
                 position: absolute;';
-             animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('transform') ) + '-style : preserve-3d }';
+            animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('transformStyle') ) + ': preserve-3d;'
+            animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('backfaceVisibility') ) + ': hidden;';
+
+            animClass += '}';
             CssUtils.addRule( animClass );
+            console.log( animClass );
             return $('<div class="' + $.css3cube.buildClass('container') + '"></div>').appendTo(that);
         }
 
@@ -240,21 +247,6 @@ CssUtils.fromCamelToCss = function(str) {
             CssUtils.addRule( animClass );
             return className;
         }
-/*
-        $.css3cube.addParts = function(that) {
-            var width = parseInt( CssUtils.getRule( $.css3cube.buildClass('el',true), 'width') );
-            $.css3cube( { size : width, sizeHalf : Math.round(width/2) });
-
-            $.each( $.css3cube.cssPartDefTransformations, function(key, val) {
-                var cssName = $.css3cube.buildClass(key);
-                var cssStr = '.' + cssName + '{'
-                            + CssUtils.fromCamelToCss( Modernizr.prefixed('transform') )
-                            + ':' + val( $.css3cube() ) + ";";
-                            + '}';
-                CssUtils.addRule(cssStr);
-                that.append('<div class="' + $.css3cube.buildClass('el') + ' ' + cssName + '"></div>');
-            });
-        }*/
 
         var settings = $.css3cube(options);
         var width = parseInt( CssUtils.getRule( $.css3cube.buildClass('el',true), 'width') );

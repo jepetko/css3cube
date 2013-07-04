@@ -1,18 +1,21 @@
 #supercontainer {
     position: relative;
-    width: 400px;
-    height: 400px;
+    width: 200px;
+    height: 200px;
     margin-top: 50px;
     margin-left: 300px;
     position: relative;
     border: 1px solid #CCC;
     -moz-perspective: 1000px;
     perspective: 1000px;
+    -webkit-perspective: 1000px;
 }
 
 .css3cube-el {
     border: 2px solid black;
     position: absolute;
-    width: 400px;
-    height: 400px;
+    width: 200px;
+    height: 200px;
+    background-color: lightblue;
+    opacity: .5;
 }
