@@ -27,6 +27,17 @@ CssUtils.addRule = function(rule) {
         document.getElementsByTagName( 'head' )[ 0 ].appendChild( s );
     }
 };
+CssUtils.getRule = function(name, propName) {
+    var classes = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
+
+    var propValue = null;
+    $.each( classes, function(idx, el) {
+        if( el.selectorText !== name ) return;
+        propValue = el.style[propName];
+    });
+    return propValue;
+};
+
 CssUtils.getPrefix = function(str) {
     var result = /.*\-/g.exec(str);
     if( result && result.length>0 ) {
@@ -46,42 +57,143 @@ CssUtils.fromCamelToCss = function(str) {
         /////// configuration
 
         $.css3cube = function(options) {
-            options = $.extend({}, { actions : ['animatex'] }, options);
-            return options;
+            if(typeof this.options === 'undefined')
+                this.options = {};
+            if(arguments.length === 0)
+                return this.options;
+            //$.extend(this.options, { actions : ['animatex', 'animatey', 'animatez', 'shake'] }, options);
+            $.extend(this.options, { actions : ['open'] }, options);
+            return this.options;
+        };
+
+        $.css3cube.animDuration = 5000;
+        $.css3cube.cssPrefix = 'css3cube';
+        $.css3cube.buildClass = function(str,inclDot) {
+            var name = $.css3cube.cssPrefix + '-' + str;
+            if( inclDot ) name = '.' + name;
+            return name;
         };
 
         $.css3cube.actionBehavior = {
-            animatex : function(that) {
-                var animClass = '.css3cube-animatex {'
-                    + CssUtils.fromCamelToCss( Modernizr.prefixed('transform') )
-                    + ': translateZ( -100px ) rotateY( 90deg ); }';
+            _removeAll : function(that) {
+                var classes = jQuery.map($.css3cube.actionBehavior, function(val, key){
+                    if(key.indexOf('_') === 0) return null;
+                    return $.css3cube.buildClass(key);
+                });
+                that.removeClass(classes.join(' '));
+            },
+            _add : function(that, name, type, value) {
+                //to avoid collisions remove all the rules added previously
+                $.css3cube.actionBehavior._removeAll(that);
+                //add rule
+                var animClass = $.css3cube.buildClass(name,true) + ' {'
+                    + CssUtils.fromCamelToCss( Modernizr.prefixed(type) )
+                    + ': ' + value + '; }';
+                console.log( animClass );
                 CssUtils.addRule( animClass );
+                //add the brand new rule to the cube
+                that.addClass($.css3cube.buildClass(name));
+            },
+            animatex : function(that) {
+                that.addClass( $.css3cube.buildClass('container-anim') );
+                $.css3cube.actionBehavior._add(that, 'animatex', 'transform', 'rotateX(180deg)');
+            },
+            animatey : function(that) {
+                that.addClass( $.css3cube.buildClass('container-anim') );
+                $.css3cube.actionBehavior._add(that, 'animatey', 'transform', 'rotateY(180deg)');
+            },
+            animatez : function(that) {
+                that.addClass( $.css3cube.buildClass('container-anim') );
+                $.css3cube.actionBehavior._add(that, 'animatez', 'transform', 'rotateZ(90deg)');
+            },
+            shake : function(that) {
+                that.removeClass( $.css3cube.buildClass('container-anim') );
 
-                that.addClass('css3cube-animatex');
+                var transform = Modernizr.prefixed('transform');
+                var transformCss = CssUtils.fromCamelToCss(transform);
+                var keyFrame = '@' + CssUtils.getPrefix(transformCss) + 'keyframes';  //issue modernizr
+
+                var frameRule = keyFrame;
+                frameRule += ' animshake { '
+                    + '0%   {' + transformCss + ': rotateY(10deg) rotateX(-10deg)} '
+                    + '5%  {' + transformCss + ':   rotateY(-10deg) rotateX(10deg)} '
+                    + '10%  {' + transformCss + ':  rotateY(9deg) rotateX(-9deg)} '
+                    + '15%  {' + transformCss + ':  rotateY(-9deg) rotateX(9deg)} '
+                    + '20% {' + transformCss + ': rotateY(8deg) rotateX(-8deg)} '
+                    + '25%   {' + transformCss + ':  rotateY(-8deg) rotateX(8deg)} '
+                    + '30%  {' + transformCss + ': rotateY(7deg) rotateX(-7deg)} '
+                    + '35%  {' + transformCss + ':  rotateY(-7deg) rotateX(7deg)} '
+                    + '40%  {' + transformCss + ':  rotateY(6deg) rotateX(-6deg)} '
+                    + '45% {' + transformCss + ':  rotateY(-6deg) rotateX(6deg)} '
+                    + '50%   {' + transformCss + ':  rotateY(5deg) rotateX(-5deg)} '
+                    + '55%  {' + transformCss + ':  rotateY(-5deg) rotateX(5deg)} '
+                    + '60%  {' + transformCss + ':  rotateY(4deg) rotateX(-4deg)} '
+                    + '65%  {' + transformCss + ':  rotateY(-4deg) rotateX(4deg)} '
+                    + '70% {' + transformCss + ':  rotateY(3deg) rotateX(-3deg)} '
+                    + '75%   {' + transformCss + ':  rotateY(-3deg) rotateX(3deg)} '
+                    + '80%  {' + transformCss + ':  rotateY(2deg) rotateX(-2deg)} '
+                    + '85%  {' + transformCss + ':  rotateY(-2deg) rotateX(2deg)} '
+                    + '90%  {' + transformCss + ':  rotateY(1deg) rotateX(-1deg)} '
+                    + '95% {' + transformCss + ':  rotateY(-1deg) rotateX(1deg)} '
+                    + '100% {' + transformCss + ':  rotateY(0deg) rotateX(0deg)} '
+                    + '}';
+
+                CssUtils.addRule(frameRule);
+                $.css3cube.actionBehavior._add( that, 'shake', Modernizr.prefixed('animation'),
+                                                'animshake 5s');// + $.css3cube.animDuration );
+            },
+            open : function(that) {
+                that.addClass( $.css3cube.buildClass('container-anim') );
+                $.each( $.css3cube.cssPartsOpenTransformations, function(key, val) {
+
+                    var ch = that.children( $.css3cube.buildClass(key,true) ).first();
+
+                    ch.addClass( $.css3cube.buildClass('container-anim') );
+                    ch.removeClass( $.css3cube.buildClass(key) );
+
+                    var res = /\-{1}[a-zA-Z]+$/.exec(key);
+                    var openVal = $.css3cube.cssPartsOpenTransformations[key]($.css3cube());
+                    $.css3cube.actionBehavior._add( ch, $.css3cube.buildClass(res + '-open'), 'transform', openVal);
+                });
             }
         };
 
-        $.css3cube.cssParts = {
-            front : function() {
-                return { transform : 'translateZ(200px)' };
+        $.css3cube.cssPartDefTransformations = {
+            front : function(opts) {
+                return 'translateZ(' + opts.sizeHalf + 'px)';
             },
-            back : function() {
-                return { transform : 'rotateX( -180deg ) translateZ( 200px )' };
+            back : function(opts) {
+                return 'rotateX( -180deg ) translateZ( ' + opts.sizeHalf + 'px )';
             },
-            left : function() {
-                return { transform : 'rotateY(  -90deg ) translateZ( 200px )' };
+            left : function(opts) {
+                return 'rotateY(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )';
             },
-            right : function() {
-                return { transform : 'rotateY(   90deg ) translateZ( 200px )' };
+            right : function(opts) {
+                return 'rotateY(   90deg ) translateZ( ' + opts.sizeHalf + 'px )';
             },
-            top: function() {
-                return { transform : 'rotateX(   90deg ) translateZ( 200px )' };
+            top: function(opts) {
+                return 'rotateX(   90deg ) translateZ( ' + opts.sizeHalf + 'px )';
             },
-            bottom: function(stgs) {
-                return { transform : 'rotateX(  -90deg ) translateZ( 200px )' };
+            bottom: function(opts) {
+                return 'rotateX(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )';
             }
         }
 
+        $.css3cube.cssPartsOpenTransformations = {
+            front : function(opts) {
+            },
+            back : function(opts) {
+            },
+            left : function(opts) {
+                return { transform : 'rotateY(  0deg ) translateZ( 0px )' };
+            },
+            right : function(opts) {
+            },
+            top: function(opts) {
+            },
+            bottom: function(opts) {
+            }
+        }
         //////////////////////////////////////////
         /////// supercontainer tweak
 
@@ -96,52 +208,61 @@ CssUtils.fromCamelToCss = function(str) {
         /////// container
 
         $.css3cube.addContainer = function(that) {
-            var animClass = '.css3cube-container { \
+            var animClass = $.css3cube.buildClass('container',true);
+            animClass += '{ \
                 width: 100%; \
                 height: 100%; \
                 position: absolute;';
              animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('transform') ) + '-style : preserve-3d }';
             CssUtils.addRule( animClass );
-            return $('<div class="css3cube-container"></div>').appendTo(that);
+            return $('<div class="' + $.css3cube.buildClass('container') + '"></div>').appendTo(that);
         }
 
         $.css3cube.getDefaultAnimationBehaviorClass = function() {
-            var className = 'css3cube-container-anim';
+            var className = $.css3cube.buildClass('container-anim');
             var animClass = '.' + className + ' {'
                 + CssUtils.fromCamelToCss( Modernizr.prefixed('transition') )
-                + ': 5s; }';
+                + ': ' + $.css3cube.animDuration + 'ms; }';
             CssUtils.addRule( animClass );
             return className;
         }
 
         $.css3cube.addParts = function(that) {
-            $.each( $.css3cube.cssParts, function(key, val) {
-                var cssOpts = val(settings);
-                var cssName = 'css3cube-' + key;
-                var cssStr = '.' + cssName + '{';
-                for( var prop in cssOpts ) {
-                    var cssNameVendorSpec = CssUtils.fromCamelToCss( Modernizr.prefixed(prop) );
-                    cssStr +=  cssNameVendorSpec + ':' + cssOpts[prop] + ";";
-                }
-                cssStr += '}';
+            var width = parseInt( CssUtils.getRule( $.css3cube.buildClass('el',true), 'width') );
+            $.css3cube( { size : width, sizeHalf : Math.round(width/2) });
+
+            $.each( $.css3cube.cssPartDefTransformations, function(key, val) {
+                var cssName = $.css3cube.buildClass(key);
+                var cssStr = '.' + cssName + '{'
+                            + CssUtils.fromCamelToCss( Modernizr.prefixed('transform') )
+                            + ':' + val( $.css3cube() ) + ";";
+                            + '}';
                 CssUtils.addRule(cssStr);
-                that.append( '<div class="css3cube-el '+ cssName + '"></div>' );
+                that.append('<div class="' + $.css3cube.buildClass('el') + ' ' + cssName + '"></div>');
             });
         }
+
+        var settings = $.css3cube(options);
 
         //adding container and the parts
         var container = $.css3cube.addContainer(this).addClass( $.css3cube.getDefaultAnimationBehaviorClass() );
         $.css3cube.addParts(container);
 
         //execute some animations (consider the settings)
-        var settings = $.css3cube(options);
-        container.delay(800).queue(function () {
-            $.map(settings['actions'],
-                function (action) {
-                    $.css3cube.actionBehavior[action](container);
-                }
-            )
-        });
+        container.delay(800);
+
+        var delay = 0;
+        $.map(settings['actions'],
+            $.proxy( function (action) {
+                setTimeout( $.proxy(function() {
+                    this.queue($.proxy(function() {
+                        $.css3cube.actionBehavior[action](this);
+                    }, this));
+                    this.dequeue();
+                }, this), delay);
+                delay += $.css3cube.animDuration;
+            }, container )
+        )
         return this;
     };
 }( jQuery ));
