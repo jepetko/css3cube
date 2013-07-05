@@ -10,13 +10,22 @@
         <div id="supercontainer">
         </div>
 
-
         <script type="text/javascript" src="build/jquery.js"></script>
         <script type="text/javascript" src="build/modernizr-custom.js"></script>
         <script type="text/javascript" src="src/css3cube.js"></script>
         <script type="text/javascript">
-            $('#supercontainer').css3cube();
+            if( !Modernizr.csstransitions ) {
+                $('#supercontainer').css3cube( {    actions : ['shake', 'open'],
+                                                    animationEnd : function(evt) {
+                                                        var animName = evt.originalEvent.animationName;
+                                                        if( animName == 'animshake' ) {
+                                                            console.log('set');
+                                                            $('.css3cube-content').css('background',
+                                                            'url(https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTBmr-5fP1En6jqUO76FCHmIs_R9cS_Y10HiufUQ0WBG3R4Ygou) center no-repeat');
+                                                        }
+                                                    }
+                                             } );
+            }
         </script>
-
     </body>
 </html>

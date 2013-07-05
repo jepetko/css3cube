@@ -5,17 +5,36 @@
     margin-top: 50px;
     margin-left: 300px;
     position: relative;
-    border: 1px solid #CCC;
     -moz-perspective: 1000px;
     perspective: 1000px;
     -webkit-perspective: 1000px;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .css3cube-el {
-    border: 2px solid black;
+    border-radius: 20px;
+    -webkit-border-radius: 20px;
     position: absolute;
-    width: 200px;
-    height: 200px;
-    background-color: lightblue;
-    opacity: .5;
+    width: 180px;
+    height: 180px;
+    background: rgba(255, 0, 0, .5);
+
+    border: 20px solid rgba(0, 0, 0, 1.0);
+    -webkit-background-clip: border-box; /* for Safari */
+    background-clip: border-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+}
+
+.css3cube-content {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    margin-top: 10px;
+    margin-left: 10px;
+    border: 2px solid blue;
+    background: url(http://findicons.com/files/icons/1742/ecqlipse_2/128/help_a.png) center no-repeat;
+    transform: translateZ(50px);
+    -moz-transform: translateZ(50px);
+    -webkit-transform: translateY(50px);
 }

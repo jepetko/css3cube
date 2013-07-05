@@ -1,38 +1,6 @@
-/*! Css3cube - v0.1.0 - 2013-07-03
+/*! Css3cube - v0.1.0 - 2013-07-05
 * https://github.com/jepetko/css3cube
 * Copyright (c) 2013 katarina; Licensed MIT */
-(function($) {
-
-  // Collection method.
-  $.fn.awesome = function() {
-    return this.each(function(i) {
-      // Do something awesome to each selected element.
-      $(this).html('awesome' + i);
-    });
-  };
-
-  // Static method.
-  $.awesome = function(options) {
-    // Override default options with passed-in options.
-    options = $.extend({}, $.awesome.options, options);
-    // Return something awesome.
-    return 'awesome' + options.punctuation;
-  };
-
-  // Static method default options.
-  $.awesome.options = {
-    punctuation: '.'
-  };
-
-  // Custom selector.
-  $.expr[':'].awesome = function(elem) {
-    // Is this element awesome?
-    return $(elem).text().indexOf('awesome') !== -1;
-  };
-
-}(jQuery));
-
-
 /* array last() polyfill */
 if( typeof Array.prototype.last !== 'function' ) {
     Array.prototype.last = function() {
@@ -54,6 +22,19 @@ CssUtils.addRule = function(rule) {
         document.getElementsByTagName( 'head' )[ 0 ].appendChild( s );
     }
 };
+CssUtils.getRule = function(name, propName) {
+    var classes = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
+
+    var propValue = null;
+    $.each( classes, function(idx, el) {
+        if( el.selectorText !== name ) {
+            return;
+        }
+        propValue = el.style[propName];
+    });
+    return propValue;
+};
+
 CssUtils.getPrefix = function(str) {
     var result = /.*\-/g.exec(str);
     if( result && result.length>0 ) {
@@ -62,125 +43,262 @@ CssUtils.getPrefix = function(str) {
     return '';
 };
 CssUtils.fromCamelToCss = function(str) {
+    if( str.indexOf('-') !== -1 ) {
+        return str;
+    }
     return str.replace(/([A-Z])/g, function(str,m1){ return '-' + m1.toLowerCase(); });
-};
-
-CssUtils.crossBrowserEvtNames = {
-    //transition
-    'WebkitTransition' : 'webkitTransitionEnd',
-    'MozTransition'    : 'transitionend',
-    'OTransition'      : 'oTransitionEnd',
-    'msTransition'     : 'MSTransitionEnd',
-    'transition'       : 'transitionend',
-    //animation
-    'WebkitAnimation' : 'webkitAnimationEnd',
-    'MozAnimation'    : 'animationend',
-    'OAnimation'      : 'oAnimationEnd',
-    'msAnimation'     : 'MSAnimationEnd',
-    'animation'       : 'animationend'
 };
 
 /* Cube */
 (function ( $ ) {
     $.fn.css3cube = function( options ) {
 
-        // This is the easiest way to have default options.
-        var settings = $.extend({
-            // These are the defaults.
-            color: "#556b2f",
-            backgroundColor: "white"
-        }, options );
+        //////////////////////////////////////////
+        /////// configuration
 
-        // Greenify the collection based on the settings variable.
-        return this.css({
-            color: settings.color,
-            backgroundColor: settings.backgroundColor
-        });
+        /**
+         * supported actions are:
+         * animatex
+         * animatey
+         * animatez
+         * shake
+         * open
+         * @param options
+         * @returns {*}
+         */
+        $.css3cube = function(options) {
+            if(typeof this.options === 'undefined')
+                this.options = {};
+            if(arguments.length === 0) {
+                return this.options;
+            }
+            $.extend(this.options, options);
+            if( !options['actions'] && !this.options['actions'])
+                $.extend(this.options, { actions : ['animatez'] });
+            return this.options;
+        };
 
+        $.css3cube.animDuration = 5000;
+        $.css3cube.cssPrefix = 'css3cube';
+        $.css3cube.buildClass = function(str,inclDot) {
+            var name = $.css3cube.cssPrefix + '-' + str;
+            if( inclDot ) name = '.' + name;
+            return name;
+        };
+
+        $.css3cube.actionBehavior = {
+            _removeAll : function(that) {
+                var classes = jQuery.map($.css3cube.actionBehavior, function(val, key){
+                    if(key.indexOf('_') === 0) {
+                        return null;
+                    }
+                    return $.css3cube.buildClass(key);
+                });
+                that.removeClass(classes.join(' '));
+            },
+            _add : function(that, name, cssProps) {
+                //to avoid collisions remove all the rules added previously
+                $.css3cube.actionBehavior._removeAll(that);
+
+                //add rule
+                var animClass = $.css3cube.buildClass(name,true) + ' {'
+                var cssItems = '';
+                for( var prop in cssProps ) {
+                    var cssNameVendorSpec = CssUtils.fromCamelToCss( Modernizr.prefixed(prop) );
+                    cssItems +=  cssNameVendorSpec + ':' + cssProps[prop] + ";";
+                }
+                animClass += cssItems;
+                animClass += '}';
+
+                CssUtils.addRule( animClass );
+                //add the brand new rule to the cube
+                that.addClass($.css3cube.buildClass(name));
+            },
+            init : function(that) {
+                var borderWidth;
+                $.each( $.css3cube.cssPartDefTransformations, function(key, val) {
+                    var part = $('<div class="' + $.css3cube.buildClass('el') + '"></div>').appendTo(that);
+                    if( typeof borderWidth === 'undefined' ) {
+                        borderWidth = parseInt(part.css('border-left-width'));
+                        $.css3cube( {borderWidth : borderWidth});
+                    }
+                    $.css3cube.actionBehavior._add( part, key, val( $.css3cube() ) );
+                });
+            },
+            animatex : function(that) {
+                that.addClass( $.css3cube.buildClass('container-anim') );
+                $.css3cube.actionBehavior._add(that, 'animatex', { transform : 'rotateX(180deg)' } );
+            },
+            animatey : function(that) {
+                that.addClass( $.css3cube.buildClass('container-anim') );
+                $.css3cube.actionBehavior._add(that, 'animatey', { transform : 'rotateY(180deg)' } );
+            },
+            animatez : function(that) {
+                that.addClass( $.css3cube.buildClass('container-anim') );
+                $.css3cube.actionBehavior._add(that, 'animatez', { transform : 'rotateZ(90deg)' } );
+            },
+            shake : function(that) {
+                that.removeClass( $.css3cube.buildClass('container-anim') );
+
+                var transform = Modernizr.prefixed('transform');
+                var transformCss = CssUtils.fromCamelToCss(transform);
+                var keyFrame = '@' + CssUtils.getPrefix(transformCss) + 'keyframes';  //issue modernizr
+
+                var frameRule = keyFrame;
+                frameRule += ' animshake { '
+                    + '0%   {' + transformCss + ': rotateY(10deg) rotateX(-10deg)} '
+                    + '5%  {' + transformCss + ':   rotateY(-10deg) rotateX(10deg)} '
+                    + '10%  {' + transformCss + ':  rotateY(9deg) rotateX(-9deg)} '
+                    + '15%  {' + transformCss + ':  rotateY(-9deg) rotateX(9deg)} '
+                    + '20% {' + transformCss + ': rotateY(8deg) rotateX(-8deg)} '
+                    + '25%   {' + transformCss + ':  rotateY(-8deg) rotateX(8deg)} '
+                    + '30%  {' + transformCss + ': rotateY(7deg) rotateX(-7deg)} '
+                    + '35%  {' + transformCss + ':  rotateY(-7deg) rotateX(7deg)} '
+                    + '40%  {' + transformCss + ':  rotateY(6deg) rotateX(-6deg)} '
+                    + '45% {' + transformCss + ':  rotateY(-6deg) rotateX(6deg)} '
+                    + '50%   {' + transformCss + ':  rotateY(5deg) rotateX(-5deg)} '
+                    + '55%  {' + transformCss + ':  rotateY(-5deg) rotateX(5deg)} '
+                    + '60%  {' + transformCss + ':  rotateY(4deg) rotateX(-4deg)} '
+                    + '65%  {' + transformCss + ':  rotateY(-4deg) rotateX(4deg)} '
+                    + '70% {' + transformCss + ':  rotateY(3deg) rotateX(-3deg)} '
+                    + '75%   {' + transformCss + ':  rotateY(-3deg) rotateX(3deg)} '
+                    + '80%  {' + transformCss + ':  rotateY(2deg) rotateX(-2deg)} '
+                    + '85%  {' + transformCss + ':  rotateY(-2deg) rotateX(2deg)} '
+                    + '90%  {' + transformCss + ':  rotateY(1deg) rotateX(-1deg)} '
+                    + '95% {' + transformCss + ':  rotateY(-1deg) rotateX(1deg)} '
+                    + '100% {' + transformCss + ':  rotateY(0deg) rotateX(0deg)} '
+                    + '}';
+
+                CssUtils.addRule(frameRule);
+                $.css3cube.actionBehavior._add( that, 'shake',
+                                                { animation : 'animshake ' + $.css3cube.animDuration + 'ms'} );
+            },
+            open : function(that) {
+                that.addClass( $.css3cube.buildClass('container-anim') );
+                $.each( $.css3cube.cssPartsOpenTransformations, function(key, val) {
+
+                    var ch = that.children( $.css3cube.buildClass(key,true) ).first();
+
+                    var openVal = $.css3cube.cssPartsOpenTransformations[key]($.css3cube());
+                    if( !openVal ) {
+                        return;
+                    }
+                    $.css3cube.actionBehavior._add( ch, key + '-open', openVal );
+                    ch.removeClass( $.css3cube.buildClass(key) );
+                    ch.addClass( $.css3cube.buildClass('container-anim') );
+                });
+            }
+        };
+
+        $.css3cube.cssPartDefTransformations = {
+            front : function(opts) {
+                return { transform : 'translateZ(' + opts.sizeHalf + 'px)' };
+            },
+            back : function(opts) {
+                return { transform : 'rotateX( -180deg ) translateZ( ' + opts.sizeHalf + 'px )' };
+            },
+            left : function(opts) {
+                return { transform : 'rotateY(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
+            },
+            right : function(opts) {
+                return { transform : 'rotateY(   90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
+            },
+            top: function(opts) {
+                return { transform : 'rotateX(   90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
+            },
+            bottom: function(opts) {
+                return { transform : 'rotateX(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
+            }
+        }
+
+        /* add open values */
+        $.css3cube.cssPartsOpenTransformations = {
+            front : function(opts) {
+                return { transform : 'rotateX(270deg)  translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
+            },
+            back : function(opts) {
+                return { transform : 'rotateX(-90deg)  translateY(' + (opts.size * 1.5 + opts.borderWidth) + 'px)', transformOrigin : 'bottom' };
+            },
+            left : function(opts) {
+                return { transform : 'rotateY(-90deg)  rotateX(-90deg) translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
+            },
+            right : function(opts) {
+                return { transform : 'rotateY(90deg)  rotateX(-90deg) translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
+            },
+            top: function(opts) {
+                return { transform : 'rotateY(0deg) rotateX(90deg) translateX(' + (opts.size+opts.borderWidth) + 'px) translateY(' + opts.sizeHalf + 'px)', transformOrigin : '100% 100%' };
+            },
+            bottom: function(opts) {
+                return { transform : 'rotateX(  -90deg ) translateZ( ' + (opts.sizeHalf+opts.borderWidth) + 'px )' };
+            }
+        }
+        //////////////////////////////////////////
+        /////// supercontainer tweak
+
+        //-- vendor bullshit
+        var perspectiveCssProperty = CssUtils.fromCamelToCss( Modernizr.prefixed('perspective') );
+        var perspectiveCssValue = $(this).css(perspectiveCssProperty);
+        if( perspectiveCssValue === 'none' ) {
+            $(this).css(perspectiveCssProperty, '1000px');
+        }
+
+        //////////////////////////////////////////
+        /////// container
+
+        $.css3cube.addContainer = function(that) {
+            var animClass = $.css3cube.buildClass('container',true);
+            animClass += '{ width: 100%; height: 100%; position: absolute;';
+            animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('transformStyle') ) + ': preserve-3d;'
+            animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('backfaceVisibility') ) + ': hidden;';
+            animClass += '}';
+            CssUtils.addRule( animClass );
+            var container = $('<div class="' + $.css3cube.buildClass('container') + '"></div>').appendTo(that);
+
+            if($.isFunction($.css3cube()['animationEnd']) ) {
+                container.on('animationend', $.css3cube()['animationEnd'] );
+            }
+            return container;
+        }
+
+        $.css3cube.addContent = function(that) {
+            var contentClass = $.css3cube.buildClass('content');
+            return $('<div class="' + contentClass + '"></div>').appendTo(that);
+        }
+
+        $.css3cube.getDefaultAnimationBehaviorClass = function() {
+            var className = $.css3cube.buildClass('container-anim');
+            var animClass = '.' + className + ' {'
+                + CssUtils.fromCamelToCss( Modernizr.prefixed('transition') )
+                + ': ' + $.css3cube.animDuration + 'ms; }';
+            CssUtils.addRule( animClass );
+            return className;
+        }
+
+        var settings = $.css3cube(options);
+        var width = parseInt( CssUtils.getRule( $.css3cube.buildClass('el',true), 'width') );
+        $.css3cube( { size : width, sizeHalf : Math.round(width/2) });
+
+        //adding container and the parts
+        var container = $.css3cube.addContainer(this).addClass( $.css3cube.getDefaultAnimationBehaviorClass() );
+        $.css3cube.actionBehavior.init(container);
+        $.css3cube.addContent(container);
+
+        //execute some animations (consider the settings)
+        container.delay(1000);
+
+        var delay = 0;
+        $.map(settings['actions'],
+            $.proxy( function (action) {
+                setTimeout( $.proxy(function() {
+                    this.queue($.proxy(function() {
+                        $.css3cube.actionBehavior[action](this);
+                    }, this));
+                    this.dequeue();
+                }, this), delay);
+                delay += $.css3cube.animDuration;
+            }, container )
+        );
+
+        return this;
     };
 }( jQuery ));
-
-/*
- $(function() {
- (new function() {
- var startDelay = 1000,
- animstartDelay = 1000,
- flappingDegrees = [100,80,70,60,50,40,30,20,10,5,0],
- flappingDelays = [startDelay], //Note: flappingDelays will be filled later
- mainFrom = '180deg', trans = '10px', mainTo = flappingDegrees[0]*(-1);
-
- this.getPlate = function() {
- return $('.plate');
- }
- this.initVars = function() {
- var transform = Modernizr.prefixed('transform');
- var transformCss = CssUtils.fromCamelToCss(transform);
- var keyFrame = '@' + CssUtils.getPrefix(transformCss) + 'keyframes';  //issue modernizr
-
- var mainRule = keyFrame + ' animstart {' +
- ' from {' + transformCss + ':rotateX( ' + mainFrom + 'deg ) translate(0px,' + trans + ')}'+
- ' to {' + transformCss + ':rotateX( ' + mainTo + 'deg ) translate(0px,' + trans + ') }'+
- '}';
- CssUtils.addRule(mainRule);
-
- for(var i=0;i<flappingDegrees.length-1;i++) {
- var f = (i%2===0)?-1:1;
- var from = flappingDegrees[i] * f;
- var to = flappingDegrees[i+1] * f * (-1);
- var rule = keyFrame + ' plate' + i + ' { '+
- ' from {' + transformCss + ':rotateX( ' + from + 'deg ) translate(0px,' + trans + ')}'+
- ' to {' + transformCss + ':rotateX( ' + to + 'deg ) translate(0px,' + trans + ') }'+
- '}';
- CssUtils.addRule(rule);
- flappingDelays.push( Math.round(flappingDelays.last() * .75) );
- }
- }
-
- this.init = function() {
- this.initVars();
- var evtName = crossBrowserEvtNames[ Modernizr.prefixed('animation') ];
- this.getPlate().bind(evtName, $.proxy( function(evt) {
- var plate = this.getPlate();
- var orig = evt.originalEvent;
- if( orig ) {
- var name = orig.animationName;
- switch(name) {
- case 'animstart':
- plate.css("transform", "rotateX(" + mainTo + ") translate(0px," + trans + ")");
- break;
- default:
- var postfix = parseInt(/\d+$/.exec(name)[0]);
- var f = (postfix%2==0) ? 1 : -1;
- var endValue = flappingDegrees[postfix+1] * f;
- plate.css("transform", "rotateX(" + endValue + "deg) translate(0px," + trans + ")");
- }
- }
- },this));
- }
- this.doRotate = function() {
- var anim = '', animDelay = '';
- var tmpAnim = animstartDelay;
- $.each(flappingDelays, function(idx,val) {
- if( anim!='' ) {
- anim += ', ';
- animDelay += ', ';
- }
- anim += 'plate' + idx + ' ' + val + 'ms';
- animDelay += tmpAnim;
- animDelay += 'ms';
- tmpAnim += val;
- });
- var plate = this.getPlate();
- anim = 'animstart ' + animstartDelay + 'ms,' + anim;
- animDelay = '0ms,' + animDelay;
- var animKeyword = Modernizr.prefixed('animation');
- plate.css( animKeyword, anim);
- plate.css( animKeyword + '-delay', animDelay);
- plate.css( animKeyword + '-timing-function', 'ease-start');
- }
- this.start = function() {
- this.doRotate();
- }
- this.init();
- }).start();
- });*/
