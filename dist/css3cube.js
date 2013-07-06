@@ -67,14 +67,16 @@ CssUtils.fromCamelToCss = function(str) {
          * @returns {*}
          */
         $.css3cube = function(options) {
-            if(typeof this.options === 'undefined')
+            if(typeof this.options === 'undefined') {
                 this.options = {};
+            }
             if(arguments.length === 0) {
                 return this.options;
             }
             $.extend(this.options, options);
-            if( !options['actions'] && !this.options['actions'])
+            if( !options['actions'] && !this.options['actions']) {
                 $.extend(this.options, { actions : ['animatez'] });
+            }
             return this.options;
         };
 
@@ -82,7 +84,9 @@ CssUtils.fromCamelToCss = function(str) {
         $.css3cube.cssPrefix = 'css3cube';
         $.css3cube.buildClass = function(str,inclDot) {
             var name = $.css3cube.cssPrefix + '-' + str;
-            if( inclDot ) name = '.' + name;
+            if( inclDot ) {
+                name = '.' + name;
+            }
             return name;
         };
 
@@ -101,7 +105,7 @@ CssUtils.fromCamelToCss = function(str) {
                 $.css3cube.actionBehavior._removeAll(that);
 
                 //add rule
-                var animClass = $.css3cube.buildClass(name,true) + ' {'
+                var animClass = $.css3cube.buildClass(name,true) + ' {';
                 var cssItems = '';
                 for( var prop in cssProps ) {
                     var cssNameVendorSpec = CssUtils.fromCamelToCss( Modernizr.prefixed(prop) );
@@ -119,7 +123,7 @@ CssUtils.fromCamelToCss = function(str) {
                 $.each( $.css3cube.cssPartDefTransformations, function(key, val) {
                     var part = $('<div class="' + $.css3cube.buildClass('el') + '"></div>').appendTo(that);
                     if( typeof borderWidth === 'undefined' ) {
-                        borderWidth = parseInt(part.css('border-left-width'));
+                        borderWidth = parseInt(part.css('border-left-width'),10);
                         $.css3cube( {borderWidth : borderWidth});
                     }
                     $.css3cube.actionBehavior._add( part, key, val( $.css3cube() ) );
@@ -145,29 +149,29 @@ CssUtils.fromCamelToCss = function(str) {
                 var keyFrame = '@' + CssUtils.getPrefix(transformCss) + 'keyframes';  //issue modernizr
 
                 var frameRule = keyFrame;
-                frameRule += ' animshake { '
-                    + '0%   {' + transformCss + ': rotateY(10deg) rotateX(-10deg)} '
-                    + '5%  {' + transformCss + ':   rotateY(-10deg) rotateX(10deg)} '
-                    + '10%  {' + transformCss + ':  rotateY(9deg) rotateX(-9deg)} '
-                    + '15%  {' + transformCss + ':  rotateY(-9deg) rotateX(9deg)} '
-                    + '20% {' + transformCss + ': rotateY(8deg) rotateX(-8deg)} '
-                    + '25%   {' + transformCss + ':  rotateY(-8deg) rotateX(8deg)} '
-                    + '30%  {' + transformCss + ': rotateY(7deg) rotateX(-7deg)} '
-                    + '35%  {' + transformCss + ':  rotateY(-7deg) rotateX(7deg)} '
-                    + '40%  {' + transformCss + ':  rotateY(6deg) rotateX(-6deg)} '
-                    + '45% {' + transformCss + ':  rotateY(-6deg) rotateX(6deg)} '
-                    + '50%   {' + transformCss + ':  rotateY(5deg) rotateX(-5deg)} '
-                    + '55%  {' + transformCss + ':  rotateY(-5deg) rotateX(5deg)} '
-                    + '60%  {' + transformCss + ':  rotateY(4deg) rotateX(-4deg)} '
-                    + '65%  {' + transformCss + ':  rotateY(-4deg) rotateX(4deg)} '
-                    + '70% {' + transformCss + ':  rotateY(3deg) rotateX(-3deg)} '
-                    + '75%   {' + transformCss + ':  rotateY(-3deg) rotateX(3deg)} '
-                    + '80%  {' + transformCss + ':  rotateY(2deg) rotateX(-2deg)} '
-                    + '85%  {' + transformCss + ':  rotateY(-2deg) rotateX(2deg)} '
-                    + '90%  {' + transformCss + ':  rotateY(1deg) rotateX(-1deg)} '
-                    + '95% {' + transformCss + ':  rotateY(-1deg) rotateX(1deg)} '
-                    + '100% {' + transformCss + ':  rotateY(0deg) rotateX(0deg)} '
-                    + '}';
+                frameRule += ' animshake { '+
+                     '0%   {' + transformCss + ': rotateY(10deg) rotateX(-10deg)} ' +
+                     '5%  {' + transformCss + ':   rotateY(-10deg) rotateX(10deg)} ' +
+                     '10%  {' + transformCss + ':  rotateY(9deg) rotateX(-9deg)} ' +
+                     '15%  {' + transformCss + ':  rotateY(-9deg) rotateX(9deg)} ' +
+                     '20% {' + transformCss + ': rotateY(8deg) rotateX(-8deg)} ' +
+                     '25%   {' + transformCss + ':  rotateY(-8deg) rotateX(8deg)} ' +
+                     '30%  {' + transformCss + ': rotateY(7deg) rotateX(-7deg)} ' +
+                     '35%  {' + transformCss + ':  rotateY(-7deg) rotateX(7deg)} ' +
+                     '40%  {' + transformCss + ':  rotateY(6deg) rotateX(-6deg)} ' +
+                     '45% {' + transformCss + ':  rotateY(-6deg) rotateX(6deg)} ' +
+                     '50%   {' + transformCss + ':  rotateY(5deg) rotateX(-5deg)} ' +
+                     '55%  {' + transformCss + ':  rotateY(-5deg) rotateX(5deg)} ' +
+                     '60%  {' + transformCss + ':  rotateY(4deg) rotateX(-4deg)} ' +
+                     '65%  {' + transformCss + ':  rotateY(-4deg) rotateX(4deg)} ' +
+                     '70% {' + transformCss + ':  rotateY(3deg) rotateX(-3deg)} ' +
+                     '75%   {' + transformCss + ':  rotateY(-3deg) rotateX(3deg)} ' +
+                     '80%  {' + transformCss + ':  rotateY(2deg) rotateX(-2deg)} ' +
+                     '85%  {' + transformCss + ':  rotateY(-2deg) rotateX(2deg)} ' +
+                     '90%  {' + transformCss + ':  rotateY(1deg) rotateX(-1deg)} ' +
+                     '95% {' + transformCss + ':  rotateY(-1deg) rotateX(1deg)} ' +
+                     '100% {' + transformCss + ':  rotateY(0deg) rotateX(0deg)} ' +
+                     '}';
 
                 CssUtils.addRule(frameRule);
                 $.css3cube.actionBehavior._add( that, 'shake',
@@ -209,7 +213,7 @@ CssUtils.fromCamelToCss = function(str) {
             bottom: function(opts) {
                 return { transform : 'rotateX(  -90deg ) translateZ( ' + opts.sizeHalf + 'px )' };
             }
-        }
+        };
 
         /* add open values */
         $.css3cube.cssPartsOpenTransformations = {
@@ -231,7 +235,8 @@ CssUtils.fromCamelToCss = function(str) {
             bottom: function(opts) {
                 return { transform : 'rotateX(  -90deg ) translateZ( ' + (opts.sizeHalf+opts.borderWidth) + 'px )' };
             }
-        }
+        };
+
         //////////////////////////////////////////
         /////// supercontainer tweak
 
@@ -248,7 +253,7 @@ CssUtils.fromCamelToCss = function(str) {
         $.css3cube.addContainer = function(that) {
             var animClass = $.css3cube.buildClass('container',true);
             animClass += '{ width: 100%; height: 100%; position: absolute;';
-            animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('transformStyle') ) + ': preserve-3d;'
+            animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('transformStyle') ) + ': preserve-3d;';
             animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('backfaceVisibility') ) + ': hidden;';
             animClass += '}';
             CssUtils.addRule( animClass );
@@ -258,24 +263,24 @@ CssUtils.fromCamelToCss = function(str) {
                 container.on('animationend', $.css3cube()['animationEnd'] );
             }
             return container;
-        }
+        };
 
         $.css3cube.addContent = function(that) {
             var contentClass = $.css3cube.buildClass('content');
             return $('<div class="' + contentClass + '"></div>').appendTo(that);
-        }
+        };
 
         $.css3cube.getDefaultAnimationBehaviorClass = function() {
             var className = $.css3cube.buildClass('container-anim');
-            var animClass = '.' + className + ' {'
-                + CssUtils.fromCamelToCss( Modernizr.prefixed('transition') )
-                + ': ' + $.css3cube.animDuration + 'ms; }';
+            var animClass = '.' + className + ' {' +
+                CssUtils.fromCamelToCss( Modernizr.prefixed('transition') ) +
+                ': ' + $.css3cube.animDuration + 'ms; }';
             CssUtils.addRule( animClass );
             return className;
-        }
+        };
 
         var settings = $.css3cube(options);
-        var width = parseInt( CssUtils.getRule( $.css3cube.buildClass('el',true), 'width') );
+        var width = parseInt( CssUtils.getRule( $.css3cube.buildClass('el',true), 'width'), 10 );
         $.css3cube( { size : width, sizeHalf : Math.round(width/2) });
 
         //adding container and the parts
@@ -298,7 +303,6 @@ CssUtils.fromCamelToCss = function(str) {
                 delay += $.css3cube.animDuration;
             }, container )
         );
-
         return this;
     };
 }( jQuery ));

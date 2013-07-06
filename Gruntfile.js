@@ -38,9 +38,9 @@ module.exports = function (grunt) {
                 dest: 'dist/<%= pkg.name %>.min.js'
             }
         },
-        qunit: {
-            files: ['test/**/*.html']
-        },
+        //qunit: {
+        //    files: ['test/**/*.html']
+        //},
         jshint: {
             gruntfile: {
                 options: {
@@ -124,6 +124,36 @@ module.exports = function (grunt) {
 
             // Have custom Modernizr tests? Add paths to their location here.
             "customTests": []
+        },
+        /*jasmine: {
+            taskName: {
+                src: [ 'build/jquery.js', 'build/modernizr-custom.js', 'src/.js' ],
+                options: {
+                    specs: 'specs/*spec.js',
+                    helpers: 'specs/*helper.js',
+                    host: 'http://127.0.0.1:8000/',
+                    template: require('grunt-template-jasmine-requirejs'),
+                    templateOptions: {
+                    }
+                }
+            }
+        }*/
+        jasmine: {
+            test: {
+                src: ["build/jquery.js", "build/modernizr-custom.js", 'src/**/*.js'],
+                options: {
+                    specs: 'specs/*spec.js',
+                    template: require('grunt-template-jasmine-requirejs'),
+                    //Note: require js doesn't work. don't know why... everything installed as described.
+                    templateOptions: {
+                        requireConfig: {
+                            paths: {
+                                jquery: "build/jquery.js"
+                            }
+                        }
+                    }
+                }
+            }
         }
     });
 
@@ -131,12 +161,12 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks("grunt-modernizr");
+    grunt.loadNpmTasks('grunt-contrib-jasmine');
 
     // Default task.
-    grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify:jquery', 'uglify:dist']);
+    grunt.registerTask('default', ['jshint', 'clean', 'concat', 'uglify:jquery', 'uglify:dist']);
 
+    grunt.registerTask('test', ['jshint', 'jasmine:test']);
 };
