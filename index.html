@@ -15,7 +15,7 @@
         <script type="text/javascript" src="src/css3cube.js"></script>
         <script type="text/javascript">
             if( !Modernizr.csstransitions ) {
-                $('#supercontainer').css3cube( {    actions : [ 'shake', [{ transform : 'rotateY(360deg)' }, 'open'] ],
+                $('#supercontainer').css3cube( {    actions : [ 'shake', ['open', { transform : 'rotateY(360deg)' }] ],
                                                     handlers : {
                                                         animationend : function(evt) {
                                                             var animName = evt.originalEvent.animationName;

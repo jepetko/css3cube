@@ -297,15 +297,18 @@ CssUtils.fromCamelToCss = function(str) {
                             if(!$.isArray(action) ) {
                                 action =[action];
                             }
+
                             for(var i=0; i<action.length; i++) {
                                 var a = action[i];
                                 if( typeof a !== 'string' ) {
                                     that.addClass( $.css3cube.buildClass('container-anim') );
-                                    $.css3cube.actionBehavior._add(this, 'custom-anim-' + new Date().getTime(), a);
+                                    $.css3cube.actionBehavior._add(this, 'custom-anim-a' , a);
                                 } else {
                                     $.css3cube.actionBehavior[a](this);
                                 }
                             }
+
+
                         }, this));
                         this.dequeue();
                     }, this), delay);
