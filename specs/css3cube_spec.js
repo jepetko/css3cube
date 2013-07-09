@@ -9,7 +9,7 @@ describe('css3cube', function() {
     describe("should be initialized properly", function() {
 
         //add the jquery plugin
-        sc.css3cube( { actions : ['animatez'] } );
+        sc.css3cube( { actions : ['animatez'], handlers : { animationend : function() {} } } );
         var c = sc.children('.css3cube-container');
 
         it('should create a container', function() {

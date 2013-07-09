@@ -125,19 +125,6 @@ module.exports = function (grunt) {
             // Have custom Modernizr tests? Add paths to their location here.
             "customTests": []
         },
-        /*jasmine: {
-            taskName: {
-                src: [ 'build/jquery.js', 'build/modernizr-custom.js', 'src/.js' ],
-                options: {
-                    specs: 'specs/*spec.js',
-                    helpers: 'specs/*helper.js',
-                    host: 'http://127.0.0.1:8000/',
-                    template: require('grunt-template-jasmine-requirejs'),
-                    templateOptions: {
-                    }
-                }
-            }
-        }*/
         jasmine: {
             test: {
                 src: ["build/jquery.js", "build/modernizr-custom.js", 'src/**/*.js'],
@@ -154,6 +141,14 @@ module.exports = function (grunt) {
                     }
                 }
             }
+        },
+        release: {
+            options: {
+                npm: false,
+                tagName: '<%= version %>',
+                commitMessage: 'first release of css3cube <%= version %>',
+                tagMessage: 'tagging version <%= version %>'
+            }
         }
     });
 
@@ -164,9 +159,11 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
+    grunt.loadNpmTasks('grunt-release');
 
     // Default task.
-    grunt.registerTask('default', ['jshint', 'clean', 'concat', 'uglify:jquery', 'uglify:dist']);
+    grunt.registerTask('default', ['jshint', 'jasmine:test', 'clean', 'concat', 'uglify:jquery', 'uglify:dist']);
 
+    // extra test task
     grunt.registerTask('test', ['jshint', 'jasmine:test']);
 };

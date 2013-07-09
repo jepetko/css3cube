@@ -2,13 +2,12 @@
  * css3cube
  * https://github.com/jepetko/css3cube
  *
- * Copyright (c) 2013 katarina
+ * Copyright (c) 2013 katarina golbang
  * Licensed under the MIT license.
  */
 
 /*global $:false */
 /*global Modernizr:false */
-
 
 /* array last() polyfill */
 if( typeof Array.prototype.last !== 'function' ) {
@@ -271,12 +270,13 @@ CssUtils.fromCamelToCss = function(str) {
             var container = $('<div class="' + $.css3cube.buildClass('container') + '"></div>').appendTo(that);
 
             var handlers = $.css3cube()['handlers'];
-            $.map( handlers, function(handler,idx) {
-                if($.isFunction(handler) ) {
-                    container.on(idx, handler);
-                }
-            });
-
+            if(handlers) {
+                $.map( handlers, function(handler,idx) {
+                    if($.isFunction(handler) ) {
+                        container.on(idx, handler);
+                    }
+                });
+            }
             return container;
         };
 
@@ -301,13 +301,13 @@ CssUtils.fromCamelToCss = function(str) {
                             for(var i=0; i<action.length; i++) {
                                 var a = action[i];
                                 if( typeof a !== 'string' ) {
-                                    that.addClass( $.css3cube.buildClass('container-anim') );
+                                    that.removeClass( $.css3cube.buildClass('container-anim') );
                                     $.css3cube.actionBehavior._add(this, 'custom-anim-a' , a);
+                                    that.addClass( $.css3cube.buildClass('container-anim') );
                                 } else {
                                     $.css3cube.actionBehavior[a](this);
                                 }
                             }
-
 
                         }, this));
                         this.dequeue();
