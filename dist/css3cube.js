@@ -1,6 +1,10 @@
-/*! Css3cube - v0.1.0 - 2013-07-05
+/*! Css3cube - v0.1.0 - 2013-07-09
 * https://github.com/jepetko/css3cube
 * Copyright (c) 2013 katarina; Licensed MIT */
+/*global $:false */
+/*global Modernizr:false */
+
+
 /* array last() polyfill */
 if( typeof Array.prototype.last !== 'function' ) {
     Array.prototype.last = function() {
@@ -52,6 +56,8 @@ CssUtils.fromCamelToCss = function(str) {
 /* Cube */
 (function ( $ ) {
     $.fn.css3cube = function( options ) {
+
+        'use strict';
 
         //////////////////////////////////////////
         /////// configuration
@@ -183,7 +189,7 @@ CssUtils.fromCamelToCss = function(str) {
 
                     var ch = that.children( $.css3cube.buildClass(key,true) ).first();
 
-                    var openVal = $.css3cube.cssPartsOpenTransformations[key]($.css3cube());
+                    var openVal = val($.css3cube());
                     if( !openVal ) {
                         return;
                     }
@@ -221,13 +227,13 @@ CssUtils.fromCamelToCss = function(str) {
                 return { transform : 'rotateX(270deg)  translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
             },
             back : function(opts) {
-                return { transform : 'rotateX(-90deg)  translateY(' + (opts.size * 1.5 + opts.borderWidth) + 'px)', transformOrigin : 'bottom' };
+                return { transform : 'rotateX(-90deg)  translateY(' + (opts.size * 1.5 + 2*opts.borderWidth) + 'px)', transformOrigin : 'bottom' };
             },
             left : function(opts) {
                 return { transform : 'rotateY(-90deg)  rotateX(-90deg) translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
             },
             right : function(opts) {
-                return { transform : 'rotateY(90deg)  rotateX(-90deg) translateY(-' + opts.sizeHalf + 'px)', transformOrigin : 'bottom' };
+                return { transform : 'rotateY(90deg)  rotateX(-90deg) translateY(-' + opts.sizeHalf + 'px)', transformOrigin : '50% 100%' };
             },
             top: function(opts) {
                 return { transform : 'rotateY(0deg) rotateX(90deg) translateX(' + (opts.size+opts.borderWidth) + 'px) translateY(' + opts.sizeHalf + 'px)', transformOrigin : '100% 100%' };
@@ -259,15 +265,48 @@ CssUtils.fromCamelToCss = function(str) {
             CssUtils.addRule( animClass );
             var container = $('<div class="' + $.css3cube.buildClass('container') + '"></div>').appendTo(that);
 
-            if($.isFunction($.css3cube()['animationEnd']) ) {
-                container.on('animationend', $.css3cube()['animationEnd'] );
-            }
+            var handlers = $.css3cube()['handlers'];
+            $.map( handlers, function(handler,idx) {
+                if($.isFunction(handler) ) {
+                    container.on(idx, handler);
+                }
+            });
+
             return container;
         };
 
         $.css3cube.addContent = function(that) {
             var contentClass = $.css3cube.buildClass('content');
             return $('<div class="' + contentClass + '"></div>').appendTo(that);
+        };
+
+        $.css3cube.startAnimations = function(that) {
+            //execute some animations (consider the settings)
+            that.delay(1000);
+
+            var delay = 0;
+            $.map(settings['actions'],
+                $.proxy( function (action) {
+                    setTimeout( $.proxy(function() {
+                        this.queue($.proxy(function() {
+                            if(!$.isArray(action) ) {
+                                action =[action];
+                            }
+                            for(var i=0; i<action.length; i++) {
+                                var a = action[i];
+                                if( typeof a !== 'string' ) {
+                                    that.addClass( $.css3cube.buildClass('container-anim') );
+                                    $.css3cube.actionBehavior._add(this, 'custom-anim-' + new Date().getTime(), a);
+                                } else {
+                                    $.css3cube.actionBehavior[a](this);
+                                }
+                            }
+                        }, this));
+                        this.dequeue();
+                    }, this), delay);
+                    delay += $.css3cube.animDuration;
+                }, that )
+            );
         };
 
         $.css3cube.getDefaultAnimationBehaviorClass = function() {
@@ -287,22 +326,8 @@ CssUtils.fromCamelToCss = function(str) {
         var container = $.css3cube.addContainer(this).addClass( $.css3cube.getDefaultAnimationBehaviorClass() );
         $.css3cube.actionBehavior.init(container);
         $.css3cube.addContent(container);
+        $.css3cube.startAnimations(container);
 
-        //execute some animations (consider the settings)
-        container.delay(1000);
-
-        var delay = 0;
-        $.map(settings['actions'],
-            $.proxy( function (action) {
-                setTimeout( $.proxy(function() {
-                    this.queue($.proxy(function() {
-                        $.css3cube.actionBehavior[action](this);
-                    }, this));
-                    this.dequeue();
-                }, this), delay);
-                delay += $.css3cube.animDuration;
-            }, container )
-        );
         return this;
     };
 }( jQuery ));
