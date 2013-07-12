@@ -1,4 +1,4 @@
-/*! Css3cube - v0.1.0 - 2013-07-09
+/*! Css3cube - v0.1.0 - 2013-07-12
 * https://github.com/jepetko/css3cube
 * Copyright (c) 2013 katarina; Licensed MIT */
 /*global $:false */
@@ -16,9 +16,27 @@ if( typeof Array.prototype.last !== 'function' ) {
 
 /* CSS utilities */
 function CssUtils() {}
+CssUtils.getSuitableStylesheet = function() {
+    if( CssUtils.targetSheet ) {
+        return CssUtils.targetSheet;
+    }
+    var ss = document.styleSheets;
+    var retSheet = null;
+    $.each(ss, function(idx, s) {
+        if(!s.href) {
+            return;
+        }
+        if(s.href.indexOf(document.domain) !== -1) {
+            retSheet = s;
+        }
+    });
+    CssUtils.targetSheet = retSheet;
+    return retSheet;
+};
 CssUtils.addRule = function(rule) {
-    if( document.styleSheets && document.styleSheets.length ) {
-        document.styleSheets[0].insertRule( rule, 0 );
+    var sheet = CssUtils.getSuitableStylesheet();
+    if( sheet ) {
+        sheet.insertRule( rule, 0 );
     } else {
         var s = document.createElement( 'style' );
         s.innerHTML = rule;
@@ -26,7 +44,8 @@ CssUtils.addRule = function(rule) {
     }
 };
 CssUtils.getRule = function(name, propName) {
-    var classes = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
+    var sheet = CssUtils.getSuitableStylesheet();
+    var classes = sheet.rules || sheet.cssRules;
 
     var propValue = null;
     $.each( classes, function(idx, el) {
@@ -155,32 +174,30 @@ CssUtils.fromCamelToCss = function(str) {
 
                 var frameRule = keyFrame;
                 frameRule += ' animshake { '+
-                     '0%   {' + transformCss + ': rotateY(10deg) rotateX(-10deg)} ' +
-                     '5%  {' + transformCss + ':   rotateY(-10deg) rotateX(10deg)} ' +
-                     '10%  {' + transformCss + ':  rotateY(9deg) rotateX(-9deg)} ' +
-                     '15%  {' + transformCss + ':  rotateY(-9deg) rotateX(9deg)} ' +
-                     '20% {' + transformCss + ': rotateY(8deg) rotateX(-8deg)} ' +
-                     '25%   {' + transformCss + ':  rotateY(-8deg) rotateX(8deg)} ' +
-                     '30%  {' + transformCss + ': rotateY(7deg) rotateX(-7deg)} ' +
-                     '35%  {' + transformCss + ':  rotateY(-7deg) rotateX(7deg)} ' +
-                     '40%  {' + transformCss + ':  rotateY(6deg) rotateX(-6deg)} ' +
-                     '45% {' + transformCss + ':  rotateY(-6deg) rotateX(6deg)} ' +
-                     '50%   {' + transformCss + ':  rotateY(5deg) rotateX(-5deg)} ' +
-                     '55%  {' + transformCss + ':  rotateY(-5deg) rotateX(5deg)} ' +
-                     '60%  {' + transformCss + ':  rotateY(4deg) rotateX(-4deg)} ' +
-                     '65%  {' + transformCss + ':  rotateY(-4deg) rotateX(4deg)} ' +
-                     '70% {' + transformCss + ':  rotateY(3deg) rotateX(-3deg)} ' +
-                     '75%   {' + transformCss + ':  rotateY(-3deg) rotateX(3deg)} ' +
-                     '80%  {' + transformCss + ':  rotateY(2deg) rotateX(-2deg)} ' +
-                     '85%  {' + transformCss + ':  rotateY(-2deg) rotateX(2deg)} ' +
-                     '90%  {' + transformCss + ':  rotateY(1deg) rotateX(-1deg)} ' +
-                     '95% {' + transformCss + ':  rotateY(-1deg) rotateX(1deg)} ' +
-                     '100% {' + transformCss + ':  rotateY(0deg) rotateX(0deg)} ' +
-                     '}';
+                    '10%   {' + transformCss + ': rotateY(10deg) rotateX(-10deg)} ' +
+                    '15%  {' + transformCss + ':  rotateY(-9deg) rotateX(9deg)} ' +
+                    '20% {' + transformCss + ': rotateY(8deg) rotateX(-8deg)} ' +
+                    '25%   {' + transformCss + ':  rotateY(-8deg) rotateX(8deg)} ' +
+                    '30%  {' + transformCss + ': rotateY(7deg) rotateX(-7deg)} ' +
+                    '35%  {' + transformCss + ':  rotateY(-7deg) rotateX(7deg)} ' +
+                    '40%  {' + transformCss + ':  rotateY(6deg) rotateX(-6deg)} ' +
+                    '45% {' + transformCss + ':  rotateY(-6deg) rotateX(6deg)} ' +
+                    '50%   {' + transformCss + ':  rotateY(5deg) rotateX(-5deg)} ' +
+                    '55%  {' + transformCss + ':  rotateY(-5deg) rotateX(5deg)} ' +
+                    '60%  {' + transformCss + ':  rotateY(4deg) rotateX(-4deg)} ' +
+                    '65%  {' + transformCss + ':  rotateY(-4deg) rotateX(4deg)} ' +
+                    '70% {' + transformCss + ':  rotateY(3deg) rotateX(-3deg)} ' +
+                    '75%   {' + transformCss + ':  rotateY(-3deg) rotateX(3deg)} ' +
+                    '80%  {' + transformCss + ':  rotateY(2deg) rotateX(-2deg)} ' +
+                    '85%  {' + transformCss + ':  rotateY(-2deg) rotateX(2deg)} ' +
+                    '90%  {' + transformCss + ':  rotateY(1deg) rotateX(-1deg)} ' +
+                    '95% {' + transformCss + ':  rotateY(-1deg) rotateX(1deg)} ' +
+                    '100% {' + transformCss + ':  rotateY(0deg) rotateX(0deg)} ' +
+                    '}';
 
                 CssUtils.addRule(frameRule);
                 $.css3cube.actionBehavior._add( that, 'shake',
-                                                { animation : 'animshake ' + $.css3cube.animDuration + 'ms'} );
+                    { animation : 'animshake ' + $.css3cube.animDuration + 'ms'} );
             },
             open : function(that) {
                 that.addClass( $.css3cube.buildClass('container-anim') );
@@ -259,6 +276,7 @@ CssUtils.fromCamelToCss = function(str) {
             var animClass = $.css3cube.buildClass('container',true);
             animClass += '{ width: 100%; height: 100%; position: absolute;';
             animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('transformStyle') ) + ': preserve-3d;';
+            animClass += '-ms-transform-style: preserve-3d;';
             animClass += CssUtils.fromCamelToCss( Modernizr.prefixed('backfaceVisibility') ) + ': hidden;';
             animClass += '}';
             CssUtils.addRule( animClass );
@@ -268,6 +286,12 @@ CssUtils.fromCamelToCss = function(str) {
             if(handlers) {
                 $.map( handlers, function(handler,idx) {
                     if($.isFunction(handler) ) {
+                        if( idx.toLowerCase() === 'animationend') {
+                            idx = 'webkitAnimationEnd oAnimationEnd msAnimationEnd animationend';
+                        }
+                        if( idx.toLowerCase() === 'transitionend') {
+                            idx = 'webkitTransitionEnd oTransitionEnd msTransitionEnd transitionend';
+                        }
                         container.on(idx, handler);
                     }
                 });
@@ -281,35 +305,43 @@ CssUtils.fromCamelToCss = function(str) {
         };
 
         $.css3cube.startAnimations = function(that) {
-            //execute some animations (consider the settings)
-            that.delay(1000);
-
-            var delay = 0;
-            $.map(settings['actions'],
-                $.proxy( function (action) {
-                    setTimeout( $.proxy(function() {
-                        this.queue($.proxy(function() {
-                            if(!$.isArray(action) ) {
-                                action =[action];
-                            }
-
-                            for(var i=0; i<action.length; i++) {
-                                var a = action[i];
-                                if( typeof a !== 'string' ) {
-                                    that.removeClass( $.css3cube.buildClass('container-anim') );
-                                    $.css3cube.actionBehavior._add(this, 'custom-anim-a' , a);
-                                    that.addClass( $.css3cube.buildClass('container-anim') );
-                                } else {
-                                    $.css3cube.actionBehavior[a](this);
+            setTimeout( function() {
+                var delay = 0;
+                var count = 0;
+                $.map(settings['actions'],
+                    $.proxy( function (action) {
+                        setTimeout( $.proxy(function() {
+                            this.queue($.proxy(function() {
+                                if(!$.isArray(action) ) {
+                                    action =[action];
                                 }
-                            }
 
-                        }, this));
-                        this.dequeue();
-                    }, this), delay);
-                    delay += $.css3cube.animDuration;
-                }, that )
-            );
+                                var customAnimReplacer = function(i, c){
+                                    return c.replace(/css3cube\-custom\-anim\-[0-9]+/g, '');
+                                };
+
+                                for(var i=0; i<action.length; i++) {
+                                    var a = action[i];
+                                    if( typeof a !== 'string' ) {
+                                        that.removeClass( $.css3cube.buildClass('container-anim') );
+
+                                        that.attr('class', customAnimReplacer);
+
+                                        $.css3cube.actionBehavior._add(this, 'custom-anim-' + (new Date()).getTime(), a);
+                                        that.addClass( $.css3cube.buildClass('container-anim') );
+                                    } else {
+                                        $.css3cube.actionBehavior[a](this);
+                                    }
+                                }
+
+                            }, this));
+                            this.dequeue();
+                        }, this), delay);
+                        count++;
+                        delay += ($.css3cube.animDuration + count*500);
+                    }, that )
+                );
+            }, $.css3cube(options).startDelay);
         };
 
         $.css3cube.getDefaultAnimationBehaviorClass = function() {
